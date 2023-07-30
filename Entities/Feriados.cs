@@ -2,6 +2,9 @@
 {
     class Feriados
     {
+        //The Easter method calculates the date of Easter for a given year using the Meeus/Jones/Butcher algorithm.
+        //Refer to Gauss Easter algorithm. Here's a link that may help: https://www.tondering.dk/claus/cal/easter.php
+        //This code exactly, with very few modifications, I got on https://codereview.stackexchange.com/questions/193847/find-easter-on-any-given-year
         public static DateOnly Easter(int year)
         {
             int a = year % 19;
@@ -26,6 +29,9 @@
             return Easter(year).AddDays(60);
         }
 
+        /*The Feriado method checks if a given DateOnly object represents a holiday. It constructs a list of holiday dates by
+         * adding the calculated dates of Good Friday, Carnival, and Corpus Christi to a predefined array of fixed holidays.
+         * It then checks if the provided date matches any of the holidays in the list.*/
         private static string[] feriados = new string[] { "0101", "2104", "0105", "0709", "1210", "0211", "1511", "2512" };
         public static bool Feriado (DateOnly data)
         {
