@@ -16,8 +16,15 @@ try
 {
     IEnumerable<string> files = Directory.EnumerateFiles(path, "*.ret", SearchOption.TopDirectoryOnly);
 
-    //Renomeados is always created, even if there's no .ret file.
-    Directory.CreateDirectory(path + @"\Renomeados");
+    //Renomeados is created if any .ret file was found
+    if (files.Any())
+    {
+        Directory.CreateDirectory(path + @"\Renomeados");
+    }
+    else
+    {
+        Console.WriteLine("Não foi encontrado nenhum arquivo de retorno. A pasta Renomeados não foi criada.");
+    }
 
     int nLinhas; // number of lines
     int nFiles = 0; // number of files
@@ -26,45 +33,54 @@ try
 
     foreach (string file in files)
     {
-        nFiles++;
-        nLinhas = 0;
         string linha = File.ReadLines(file).First();
-        // the number of the account and the date are present on the first line, on these positions.
-        //if there's future variation of these locations I will probably rely in other things than exact position.
-        int conta = int.Parse(linha.Substring(33, 6));
-        
-        DateOnly data = DateOnly.Parse(linha.Substring(94, 2) + "/" + linha.Substring(96, 2) + "/"
-            + linha.Substring(98, 2));
-        
-        IEnumerable<string> lines = File.ReadLines(file);
-        foreach (string line in lines)
+        if (linha.Substring(0, 19) == "02RETORNO01COBRANCA") // to get sure it's the right .ret file
         {
-            nLinhas++;
-        }
-        // there's even a class for files (Arquivos). Check it out!
-        Arquivos arq = new Arquivos (conta, data, file, nLinhas);
+            nFiles++;
+            nLinhas = 0;
 
-        // Here the files are renamed and copied
-        if (nLinhas > 2)
-        {
-            Console.WriteLine("Renomeando " + Path.GetFileName(file) + " para " + arq.Renomear() +"...");
-            File.Copy(file, path + @"\Renomeados\" + arq.Renomear() + ".ret");
-            naoVazios++;
+            // the number of the account and the date are present on the first line, on these positions.
+            //if there's future variation of these locations I will probably rely in other things than exact position.
+            int conta = int.Parse(linha.Substring(33, 6));
+
+            DateOnly data = DateOnly.Parse(linha.Substring(94, 2) + "/" + linha.Substring(96, 2) + "/"
+                + linha.Substring(98, 2));
+
+            IEnumerable<string> lines = File.ReadLines(file);
+            foreach (string line in lines)
+            {
+                nLinhas++;
+            }
+            // there's even a class for files (Arquivos). Check it out!
+            Arquivos arq = new Arquivos(conta, data, file, nLinhas);
+
+            // Here the files are renamed and copied
+            if (nLinhas > 2)
+            {
+                Console.WriteLine("Renomeando " + Path.GetFileName(file) + " para " + arq.Renomear() + "...");
+                File.Copy(file, path + @"\Renomeados\" + arq.Renomear() + ".ret");
+                naoVazios++;
+            }
+            else
+            {
+                Console.Write("Renomeando " + Path.GetFileName(file) + " para " + arq.Renomear() + "... ");
+                Console.WriteLine("Este arquivo está vazio.");
+                Directory.CreateDirectory(path + @"\Renomeados\Vazios");
+                File.Copy(file, path + @"\Renomeados\Vazios\" + arq.Renomear() + ".ret");
+                vazios++;
+            }
+            Console.WriteLine();
         }
-        else
-        {
-            Console.Write("Renomeando " + Path.GetFileName(file) + " para " + arq.Renomear() + "... ");
-            Console.WriteLine("Este arquivo está vazio.");
-            Directory.CreateDirectory(path + @"\Renomeados\Vazios");
-            File.Copy(file, path + @"\Renomeados\Vazios\" + arq.Renomear() + ".ret");
-            vazios++;
-        }
-        Console.WriteLine();
+
     }
     Console.ReadLine();
-    Console.WriteLine("Foram encontrados " + nFiles + " arquivos de retorno ao todo.");
-    Console.WriteLine("Destes, " + vazios + " estavam vazios e foram colocados na pasta \\Renomeados\\Vazios");
-    Console.WriteLine("Os outros " + naoVazios + " restantes estão em \\Renomeados");
+
+    if (nFiles > 0)
+    {
+        Console.WriteLine("Foram encontrados " + nFiles + " arquivos de retorno ao todo.");
+        Console.WriteLine("Destes, " + vazios + " estavam vazios e foram colocados na pasta \\Renomeados\\Vazios");
+        Console.WriteLine("Os outros " + naoVazios + " restantes estão em \\Renomeados");
+    }
 }
 catch (IOException e)
 {
