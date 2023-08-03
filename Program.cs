@@ -2,7 +2,27 @@
 
 //The path is determined from where the program run. May be any folder.
 string path = Directory.GetCurrentDirectory();
+string? targetPath;
+bool targetPathExist;
+if (File.Exists(path + @"\targetPath.txt"))
+{
+    targetPath = File.ReadLines(path + @"\targetPath.txt").First();
+}
+else
+{
+    targetPath = null;
+}
+if (Directory.Exists(targetPath))
+{
+    targetPathExist = true;
+}
+else
+{
+    targetPathExist = false;
+}
+
 Console.WriteLine("Acessando pasta " + path);
+
 Console.ReadLine();
 Console.WriteLine();
 
@@ -60,6 +80,10 @@ try
                 Console.WriteLine("Renomeando " + Path.GetFileName(file) + " para " + arq.Renomear() + "...");
                 File.Copy(file, path + @"\Renomeados\" + arq.Renomear() + ".ret");
                 naoVazios++;
+                if (targetPathExist == true && !File.Exists(targetPath + "\\" + arq.Renomear() + ".ret"))
+                {
+                    File.Copy(file, targetPath + "\\" + arq.Renomear() + ".ret");
+                }
             }
             else
             {
@@ -69,6 +93,7 @@ try
                 File.Copy(file, path + @"\Renomeados\Vazios\" + arq.Renomear() + ".ret");
                 vazios++;
             }
+
             Console.WriteLine();
         }
 
@@ -80,6 +105,15 @@ try
         Console.WriteLine("Foram encontrados " + nFiles + " arquivos de retorno ao todo.");
         Console.WriteLine("Destes, " + vazios + " estavam vazios e foram colocados na pasta \\Renomeados\\Vazios");
         Console.WriteLine("Os outros " + naoVazios + " restantes estão em \\Renomeados");
+        if (targetPathExist == true)
+        {
+            Console.WriteLine("Os arquivos também foram copiados para a pasta " + targetPath);
+        }
+        else
+        {
+            Console.WriteLine("O arquivo targetPath.txt informando o caminho para salvar os arquivos não foi disponibilizado" +
+                " ou o caminho " + targetPath + " não existe. Favor verificar.");
+        }
     }
 }
 catch (IOException e)
